@@ -1,26 +1,176 @@
 @import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
+@custom-variant dark (&:is(.dark *));
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --font-sans: var(--font-sans);
+  --font-serif: var(--font-serif);
+  --font-calligraphy: var(--font-calligraphy), "Ma Shan Zheng", cursive;
+  --font-mono: ui-monospace, monospace;
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar: var(--sidebar);
+  --color-chart-5: var(--chart-5);
+  --color-chart-4: var(--chart-4);
+  --color-chart-3: var(--chart-3);
+  --color-chart-2: var(--chart-2);
+  --color-chart-1: var(--chart-1);
+  --color-ring: var(--ring);
+  --color-input: var(--input);
+  --color-border: var(--border);
+  --color-destructive: var(--destructive);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent: var(--accent);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-muted: var(--muted);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary: var(--secondary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary: var(--primary);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-popover: var(--popover);
+  --color-card-foreground: var(--card-foreground);
+  --color-card: var(--card);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --radius-2xl: calc(var(--radius) + 8px);
+  --radius-3xl: calc(var(--radius) + 12px);
+  --radius-4xl: calc(var(--radius) + 16px);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+:root {
+  --radius: 0.625rem;
+  --background: hsl(0 0% 100%);
+  --foreground: hsl(21 5% 15%);
+  --card: hsl(0 0% 100%);
+  --card-foreground: hsl(21 5% 15%);
+  --popover: hsl(0 0% 100%);
+  --popover-foreground: hsl(21 5% 15%);
+  --primary: hsl(21 5% 22%);
+  --primary-foreground: hsl(60 5% 98%);
+  --secondary: hsl(60 5% 97%);
+  --secondary-foreground: hsl(21 5% 22%);
+  --muted: hsl(60 5% 97%);
+  --muted-foreground: hsl(21 5% 55%);
+  --accent: hsl(60 5% 97%);
+  --accent-foreground: hsl(21 5% 22%);
+  --destructive: hsl(0 50% 45%);
+  --border: hsl(21 5% 92%);
+  --input: hsl(21 5% 92%);
+  --ring: hsl(21 5% 70%);
+  --chart-1: hsl(21 50% 45%);
+  --chart-2: hsl(180 50% 45%);
+  --chart-3: hsl(220 50% 45%);
+  --chart-4: hsl(45 50% 45%);
+  --chart-5: hsl(30 50% 45%);
+  --sidebar: hsl(60 5% 98%);
+  --sidebar-foreground: hsl(21 5% 15%);
+  --sidebar-primary: hsl(21 5% 22%);
+  --sidebar-primary-foreground: hsl(60 5% 98%);
+  --sidebar-accent: hsl(60 5% 97%);
+  --sidebar-accent-foreground: hsl(21 5% 22%);
+  --sidebar-border: hsl(21 5% 92%);
+  --sidebar-ring: hsl(21 5% 70%);
+}
+
+.dark {
+  --background: hsl(21 5% 15%);
+  --foreground: hsl(60 5% 98%);
+  --card: hsl(21 5% 22%);
+  --card-foreground: hsl(60 5% 98%);
+  --popover: hsl(21 5% 22%);
+  --popover-foreground: hsl(60 5% 98%);
+  --primary: hsl(21 5% 92%);
+  --primary-foreground: hsl(21 5% 22%);
+  --secondary: hsl(21 5% 27%);
+  --secondary-foreground: hsl(60 5% 98%);
+  --muted: hsl(21 5% 27%);
+  --muted-foreground: hsl(21 5% 70%);
+  --accent: hsl(21 5% 27%);
+  --accent-foreground: hsl(60 5% 98%);
+  --destructive: hsl(0 50% 70%);
+  --border: hsl(0 0% 100% / 10%);
+  --input: hsl(0 0% 100% / 15%);
+  --ring: hsl(21 5% 55%);
+  --chart-1: hsl(220 50% 50%);
+  --chart-2: hsl(160 50% 50%);
+  --chart-3: hsl(30 50% 50%);
+  --chart-4: hsl(300 50% 50%);
+  --chart-5: hsl(20 50% 50%);
+  --sidebar: hsl(21 5% 22%);
+  --sidebar-foreground: hsl(60 5% 98%);
+  --sidebar-primary: hsl(220 50% 50%);
+  --sidebar-primary-foreground: hsl(60 5% 98%);
+  --sidebar-accent: hsl(21 5% 27%);
+  --sidebar-accent-foreground: hsl(60 5% 98%);
+  --sidebar-border: hsl(0 0% 100% / 10%);
+  --sidebar-ring: hsl(21 5% 55%);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+
+  body {
+    @apply bg-stone-50 text-stone-800 antialiased;
+    font-family: var(--font-sans), "Noto Sans SC", system-ui, sans-serif;
+    background-image:
+      linear-gradient(to bottom, rgba(250, 250, 249, 0.8), rgba(250, 250, 249, 0.9)),
+      url('/images/rice-paper.png');
+    background-size: cover;
+    background-attachment: fixed;
+    background-repeat: no-repeat;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    font-family: var(--font-serif), "Noto Serif SC", serif;
+    @apply tracking-tight;
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f5f5f4;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #d6d3d1;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #a8a29e;
+}
+
+/* Smooth scroll */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Selection color */
+::selection {
+  background: #d6d3d1;
+  color: #1c1917;
 }
