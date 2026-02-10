@@ -177,8 +177,8 @@ export function HexagramDisplay({
       {" "}
       {/* 从下到上显示，但数组是从上到下 */}
       {lines.map((line, index) => {
-        // index 0 是上爻，index 5 是初爻
-        const position = 6 - index;
+        // index 0 是初爻，index 5 是上爻
+        const position = index + 1;
         const isRevealed = index < revealedCount;
         const isChanging = showChanging && (line === 6 || line === 9);
 
