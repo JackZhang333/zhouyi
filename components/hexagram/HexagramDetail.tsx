@@ -11,7 +11,7 @@ import { getHexagramRelations } from "@/lib/utils/hexagram";
 import { HexagramDisplay } from "@/components/divination/YaoInkAnimation";
 import { Comments } from "./Comments";
 import { ScrollReveal } from "@/components/divination/ScrollReveal";
-import { Share2, Lock } from "lucide-react";
+import { Share2, Lock, ChevronDown, ChevronUp, BookOpen } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
@@ -25,6 +25,7 @@ export function HexagramDetail({ hexagram }: HexagramDetailProps) {
   const relations = getHexagramRelations(hexagram);
   const [user, setUser] = useState<any>(null);
   const [isLoadingUser, setIsLoadingUser] = useState(true);
+  const [wenYanExpanded, setWenYanExpanded] = useState(false);
   const router = useRouter();
 
   useEffect(() => {
@@ -154,6 +155,75 @@ export function HexagramDetail({ hexagram }: HexagramDetailProps) {
         </Card>
       </ScrollReveal>
 
+      {/* 文言 - 仅乾坤两卦 */}
+      {hexagram.original.wenYan && (
+        <ScrollReveal delay={0.45}>
+          <Card className="border-stone-200">
+            <CardHeader className="pb-3">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <BookOpen className="h-5 w-5 text-amber-600" />
+                  <CardTitle className="text-xl font-calligraphy text-stone-800">文言</CardTitle>
+                </div>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setWenYanExpanded(!wenYanExpanded)}
+                  className="text-stone-500 hover:text-stone-700 gap-1"
+                >
+                  {wenYanExpanded ? (
+                    <>
+                      <ChevronUp className="h-4 w-4" />
+                      <span className="text-xs">收起</span>
+                    </>
+                  ) : (
+                    <>
+                      <ChevronDown className="h-4 w-4" />
+                      <span className="text-xs">展开</span>
+                    </>
+                  )}
+                </Button>
+              </div>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {!wenYanExpanded ? (
+                // 折叠状态：显示预览
+                <div
+                  className="p-4 bg-stone-50 rounded-lg cursor-pointer hover:bg-stone-100 transition-colors"
+                  onClick={() => setWenYanExpanded(true)}
+                >
+                  <p className="text-stone-600 font-serif text-sm overflow-hidden"
+                    style={{ display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' }}
+                  >
+                    {hexagram.original.wenYan?.slice(0, 60)}……
+                  </p>
+                  <p className="text-xs text-stone-400 mt-2 text-center">
+                    点击展开查看完整文言
+                  </p>
+                </div>
+              ) : (
+                // 展开状态：显示完整内容
+                <>
+                  <div className="p-6 bg-stone-50 rounded-lg max-h-[60vh] overflow-y-auto">
+                    <p className="text-stone-800 font-serif leading-relaxed whitespace-pre-line">
+                      {hexagram.original.wenYan}
+                    </p>
+                  </div>
+                  {hexagram.vernacular.wenYan && (
+                    <div className="p-4 bg-amber-50/30 rounded-lg border-l-2 border-amber-200 max-h-[40vh] overflow-y-auto">
+                      <p className="text-xs text-amber-600/70 mb-2 font-serif">白话解</p>
+                      <p className="text-stone-600 leading-relaxed whitespace-pre-line text-sm">
+                        {hexagram.vernacular.wenYan}
+                      </p>
+                    </div>
+                  )}
+                </>
+              )}
+            </CardContent>
+          </Card>
+        </ScrollReveal>
+      )}
+
       {/* 爻辞 */}
       <ScrollReveal delay={0.5}>
         <Card className="border-stone-200">
@@ -168,7 +238,7 @@ export function HexagramDetail({ hexagram }: HexagramDetailProps) {
                 const yaoName = `${positions[index]}${isYang ? "九" : "六"}`;
 
                 return (
-                  <div key={index} className="space-y-2">
+                  <div key={index} className="space-y-3">
                     <div className="flex items-center gap-2 mb-2">
                       <Badge variant="outline" className="bg-stone-100 font-serif">
                         {yaoName}
@@ -176,6 +246,7 @@ export function HexagramDetail({ hexagram }: HexagramDetailProps) {
                       <Separator className="flex-1" />
                     </div>
 
+                    {/* 爻辞 */}
                     <div className="p-4 bg-stone-50 rounded-lg">
                       <p className="text-stone-800 font-serif text-lg mb-2">{yao}</p>
                       {hexagram.vernacular.yaoCi[index] && (
@@ -184,6 +255,21 @@ export function HexagramDetail({ hexagram }: HexagramDetailProps) {
                         </p>
                       )}
                     </div>
+
+                    {/* 小象 */}
+                    {hexagram.original.xiaoXiang[index] && (
+                      <div className="ml-4 p-3 bg-amber-50/50 rounded-lg border-l-2 border-amber-200">
+                        <p className="text-xs text-amber-600/70 mb-1 font-serif">小象</p>
+                        <p className="text-stone-700 font-serif text-sm mb-1">
+                          {hexagram.original.xiaoXiang[index]}
+                        </p>
+                        {hexagram.vernacular.xiaoXiang[index] && (
+                          <p className="text-stone-500 text-xs">
+                            {hexagram.vernacular.xiaoXiang[index]}
+                          </p>
+                        )}
+                      </div>
+                    )}
                   </div>
                 );
               })}
