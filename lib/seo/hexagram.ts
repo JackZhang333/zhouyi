@@ -19,7 +19,7 @@ export function generateHexagramMetadata(hexagram: Hexagram): Metadata {
             title: `${hexagram.name}卦详解`,
             description: hexagram.vernacular.guaCi.substring(0, 160),
             type: "article",
-            url: `https://wengua.ai/hexagrams/${hexagram.id}`,
+            url: `https://timeandzone.cn/hexagrams/${hexagram.id}`,
             siteName: "问卦 AI",
             images: [
                 {
@@ -44,24 +44,24 @@ export function generateHexagramJsonLd(hexagram: Hexagram) {
         "@type": "Article",
         "headline": `${hexagram.name}卦详解 - 周易智慧`,
         "description": hexagram.vernacular.guaCi,
-        "image": `https://wengua.ai/images/hexagrams/${hexagram.id}.png`,
+        "image": `https://timeandzone.cn/images/hexagrams/${hexagram.id}.png`,
         "author": {
             "@type": "Organization",
             "name": "问卦 AI",
-            "url": "https://wengua.ai"
+            "url": "https://timeandzone.cn"
         },
         "publisher": {
             "@type": "Organization",
             "name": "问卦 AI",
             "logo": {
                 "@type": "ImageObject",
-                "url": "https://wengua.ai/logo.png"
+                "url": "https://timeandzone.cn/logo.png"
             }
         },
         "datePublished": "2024-01-01T00:00:00+08:00",
         "mainEntityOfPage": {
             "@type": "WebPage",
-            "@id": `https://wengua.ai/hexagrams/${hexagram.id}`
+            "@id": `https://timeandzone.cn/hexagrams/${hexagram.id}`
         }
     };
 }

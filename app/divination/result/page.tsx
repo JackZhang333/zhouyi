@@ -15,13 +15,15 @@ import { getHexagramById } from "@/data/hexagrams";
 import { YaoType } from "@/lib/utils/divination";
 import { Hexagram } from "@/types";
 import { useDivinationStore } from "@/stores/divinationStore";
-import { ArrowLeft, Share2, Save, Sparkles, Loader2, RotateCcw } from "lucide-react";
+import { ArrowLeft, Share2, Save, Sparkles, Loader2, RotateCcw, Lock } from "lucide-react";
 import { ZenMarkdown } from "@/components/divination/ZenMarkdown";
+import { createClient } from "@/lib/supabase/client";
+import { getDivinationRecordById } from "@/lib/supabase/db";
 
 function DivinationResultContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
-  const { addToHistory } = useDivinationStore();
+  const { addToHistory, history } = useDivinationStore();
 
   const [lines, setLines] = useState<YaoType[]>([]);
   const [originalHexagram, setOriginalHexagram] = useState<Hexagram | null>(null);
@@ -39,53 +41,98 @@ function DivinationResultContent() {
   const [isSaving, setIsSaving] = useState(false);
   const [isSaved, setIsSaved] = useState(false);
 
-  // 标签状态
-  const [tags, setTags] = useState<string[]>([]);
-  const [tagInput, setTagInput] = useState("");
-
-  const addTag = () => {
-    const tag = tagInput.trim();
-    if (tag && !tags.includes(tag)) {
-      setTags([...tags, tag]);
-      setTagInput("");
-    }
-  };
-
-  const removeTag = (tagToRemove: string) => {
-    setTags(tags.filter((t) => t !== tagToRemove));
-  };
+  const [user, setUser] = useState<any>(null);
+  const [isLoadingUser, setIsLoadingUser] = useState(true);
+  const [recordCreatedAt, setRecordCreatedAt] = useState<string | null>(null);
 
   useEffect(() => {
-    const linesParam = searchParams.get("lines");
-    const originalParam = searchParams.get("original");
-    const changedParam = searchParams.get("changed");
-    const changingParam = searchParams.get("changing");
-    const questionParam = searchParams.get("question");
-    const interpretationParam = searchParams.get("interpretation");
-    const idParam = searchParams.get("id");
+    const supabase = createClient();
+    const checkUser = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      setUser(user);
+      setIsLoadingUser(false);
+    };
+    checkUser();
 
-    if (linesParam && originalParam) {
-      const parsedLines = JSON.parse(linesParam) as YaoType[];
-      setLines(parsedLines);
-      setOriginalHexagram(getHexagramById(originalParam) || null);
-      if (changedParam) {
-        setChangedHexagram(getHexagramById(changedParam) || null);
-      }
-      if (changingParam) {
-        setChangingLines(JSON.parse(changingParam));
-      }
-      if (questionParam) {
-        setQuestion(decodeURIComponent(questionParam));
-      }
-      if (interpretationParam) {
-        setAiInterpretation(decodeURIComponent(interpretationParam));
-      }
+    const fetchRecord = async () => {
+      const idParam = searchParams.get("id");
+      const linesParam = searchParams.get("lines");
+      const originalParam = searchParams.get("original");
+      const changedParam = searchParams.get("changed");
+      const changingParam = searchParams.get("changing");
+      const questionParam = searchParams.get("question");
+      const interpretationParam = searchParams.get("interpretation");
+
+      // 1. 如果有 ID，尝试从数据库或本地历史获取
       if (idParam) {
         setSavedRecordId(idParam);
         setIsSaved(true);
+
+        // 尝试从本地 store 查找
+        const localRecord = history.find(r => r.id === idParam);
+        if (localRecord) {
+          setLines(localRecord.lines as YaoType[]);
+          setOriginalHexagram(getHexagramById(localRecord.original_hexagram_id) || null);
+          if (localRecord.changed_hexagram_id) {
+            setChangedHexagram(getHexagramById(localRecord.changed_hexagram_id) || null);
+          }
+          setChangingLines(localRecord.changing_lines);
+          setQuestion(localRecord.question);
+          setAiInterpretation(localRecord.ai_interpretation || "");
+          setRecordCreatedAt(localRecord.created_at);
+          return;
+        }
+
+        // 尝试从 Supabase 查找
+        try {
+          const remoteRecord = await getDivinationRecordById(idParam);
+          if (remoteRecord) {
+            setLines(remoteRecord.lines as YaoType[]);
+            setOriginalHexagram(getHexagramById(remoteRecord.original_hexagram_id) || null);
+            if (remoteRecord.changed_hexagram_id) {
+              setChangedHexagram(getHexagramById(remoteRecord.changed_hexagram_id) || null);
+            }
+            setChangingLines(remoteRecord.changing_lines);
+            setQuestion(remoteRecord.question);
+            setAiInterpretation(remoteRecord.ai_interpretation || "");
+            setRecordCreatedAt(remoteRecord.created_at);
+            return;
+          }
+        } catch (error) {
+          console.error("Failed to fetch remote record:", error);
+        }
       }
-    }
-  }, [searchParams]);
+
+      // 2. 回退到 URL 参数逻辑
+      if (linesParam && originalParam) {
+        try {
+          const parsedLines = JSON.parse(linesParam) as YaoType[];
+          setLines(parsedLines);
+          setOriginalHexagram(getHexagramById(originalParam) || null);
+          if (changedParam) {
+            setChangedHexagram(getHexagramById(changedParam) || null);
+          }
+          if (changingParam) {
+            setChangingLines(JSON.parse(changingParam));
+          }
+          if (questionParam) {
+            setQuestion(decodeURIComponent(questionParam));
+          }
+          if (interpretationParam) {
+            setAiInterpretation(decodeURIComponent(interpretationParam));
+          }
+          const createdAtParam = searchParams.get("createdAt");
+          if (createdAtParam) {
+            setRecordCreatedAt(decodeURIComponent(createdAtParam));
+          }
+        } catch (e) {
+          console.error("Error parsing URL params:", e);
+        }
+      }
+    };
+
+    fetchRecord();
+  }, [searchParams, history]);
 
   // 获取AI解读
   const fetchAiInterpretation = async () => {
@@ -120,11 +167,10 @@ function DivinationResultContent() {
       const data = await response.json();
       setAiInterpretation(data.interpretation);
 
-      // 更新URL参数 - 移除，避免 URL 过长导致 431 错误
-      // const params = new URLSearchParams(searchParams.toString());
-      // params.set("question", encodeURIComponent(question.trim()));
-      // params.set("interpretation", encodeURIComponent(data.interpretation));
-      // router.replace(`/divination/result?${params.toString()}`);
+      // 如果用户已登录，自动保存/更新记录
+      if (user) {
+        await saveRecord(data.interpretation);
+      }
     } catch (error) {
       setAiError(error instanceof Error ? error.message : "获取解读失败，请稍后重试");
     } finally {
@@ -135,40 +181,43 @@ function DivinationResultContent() {
   const [savedRecordId, setSavedRecordId] = useState<string | null>(null);
 
   // 保存记录
-  const saveRecord = async () => {
+  const saveRecord = async (newInterpretation?: string) => {
     if (!originalHexagram) return;
 
     setIsSaving(true);
 
     try {
+      const currentRecordId = savedRecordId || crypto.randomUUID();
+
       const record = {
-        id: crypto.randomUUID(),
+        id: currentRecordId,
         question: question.trim(),
         lines,
         original_hexagram_id: originalHexagram.id,
         changed_hexagram_id: changedHexagram?.id || null,
         changing_lines: changingLines,
-        ai_interpretation: aiInterpretation,
+        ai_interpretation: newInterpretation !== undefined ? newInterpretation : aiInterpretation,
         notes: "",
-        tags,
+        tags: [],
         is_public: true, // Default to public for sharing
-        created_at: new Date().toISOString(),
+        // 如果是新记录，设置 created_at，否则在 DB 中由默认值处理或保持不变
+        created_at: recordCreatedAt || new Date().toISOString(),
         updated_at: new Date().toISOString(),
       };
 
-      // 如果已有 ID，则是更新
-      if (savedRecordId) {
-        record.id = savedRecordId;
-      }
-
       const id = await addToHistory(record);
       setSavedRecordId(id);
+      if (!recordCreatedAt) {
+        setRecordCreatedAt(record.created_at);
+      }
       setIsSaved(true);
 
       // 3秒后重置状态（但保留 ID 供分享）
       setTimeout(() => setIsSaved(false), 3000);
+      return id;
     } catch (error) {
       console.error("保存失败:", error);
+      setAiError("保存记录失败，请手动点击保存");
     } finally {
       setIsSaving(false);
     }
@@ -345,12 +394,27 @@ function DivinationResultContent() {
                           <p className="text-stone-600 mb-4">
                             想获得针对您所求之事的 AI 解读吗？
                           </p>
-                          <Button
-                            onClick={() => setShowAiInput(true)}
-                            className="bg-stone-800 hover:bg-stone-700"
-                          >
-                            获取 AI 解读
-                          </Button>
+                          {!isLoadingUser && !user ? (
+                            <div className="flex flex-col items-center gap-3">
+                              <p className="text-stone-400 text-sm">
+                                <Lock className="h-3 w-3 inline mr-1" />
+                                登录后即可使用 AI 解读功能
+                              </p>
+                              <Link href={`/auth/login?redirect=/divination/result?${searchParams.toString()}`}>
+                                <Button className="bg-stone-800 hover:bg-stone-700">
+                                  立即登录
+                                </Button>
+                              </Link>
+                            </div>
+                          ) : (
+                            <Button
+                              onClick={() => setShowAiInput(true)}
+                              className="bg-stone-800 hover:bg-stone-700"
+                              disabled={isLoadingUser}
+                            >
+                              获取 AI 解读
+                            </Button>
+                          )}
                         </div>
                       ) : (
                         <div className="space-y-4">
@@ -418,7 +482,7 @@ function DivinationResultContent() {
                             setShowAiInput(true);
                           }}
                         >
-                          重新提问
+                          更新解读
                         </Button>
                       </div>
                     </motion.div>
@@ -428,51 +492,6 @@ function DivinationResultContent() {
             </Card>
           </motion.div>
 
-          {/* Tags Section */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.7 }}
-            className="mb-8"
-          >
-            <Card className="border-stone-200">
-              <CardContent className="p-4">
-                <div className="flex flex-wrap gap-2 items-center">
-                  <span className="text-sm text-stone-500 mr-2">标签：</span>
-                  {tags.map((tag) => (
-                    <Badge key={tag} variant="secondary" className="gap-1 px-2 py-0.5 bg-stone-100 text-stone-600 hover:bg-stone-200 transition-colors">
-                      {tag}
-                      <button onClick={() => removeTag(tag)} className="ml-1 hover:text-stone-900">
-                        ×
-                      </button>
-                    </Badge>
-                  ))}
-                  <div className="flex gap-2 items-center ml-2">
-                    <Input
-                      value={tagInput}
-                      onChange={(e: React.ChangeEvent<HTMLInputElement>) => setTagInput(e.target.value)}
-                      onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => {
-                        if (e.key === "Enter") {
-                          e.preventDefault();
-                          addTag();
-                        }
-                      }}
-                      placeholder="添加标签..."
-                      className="h-8 w-24 text-xs bg-transparent border-dashed border-stone-200 focus:border-stone-400"
-                    />
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      onClick={addTag}
-                      className="h-8 px-2 text-stone-400 hover:text-stone-600"
-                    >
-                      +
-                    </Button>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </motion.div>
 
           {/* Action Buttons */}
           <motion.div
@@ -484,7 +503,7 @@ function DivinationResultContent() {
             <Button
               variant="outline"
               className="gap-2"
-              onClick={saveRecord}
+              onClick={() => saveRecord()}
               disabled={isSaving || isSaved}
             >
               {isSaving ? (
@@ -503,9 +522,11 @@ function DivinationResultContent() {
             </Button>
 
             <Link href={
-              savedRecordId
-                ? `/share/${savedRecordId}`
-                : `/share/${originalHexagram.id}?lines=${encodeURIComponent(JSON.stringify(lines))}&question=${encodeURIComponent(question)}&interpretation=${encodeURIComponent(aiInterpretation)}`
+              user
+                ? (savedRecordId
+                  ? `/share/${savedRecordId}`
+                  : `/share/${originalHexagram.id}?lines=${encodeURIComponent(JSON.stringify(lines))}&question=${encodeURIComponent(question)}`)
+                : `/auth/login?redirect=/divination/result?id=${savedRecordId || ""}&lines=${encodeURIComponent(JSON.stringify(lines))}&original=${originalHexagram.id}&changed=${changedHexagram?.id || ""}&changing=${JSON.stringify(changingLines)}&question=${encodeURIComponent(question)}`
             }>
               <Button variant="outline" className="gap-2">
                 <Share2 className="h-4 w-4" />

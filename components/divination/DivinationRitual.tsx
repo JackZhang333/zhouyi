@@ -4,20 +4,23 @@ import { useState, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { CoinAnimation } from "./CoinAnimation";
+import { OfflineCoinSelector } from "./OfflineCoinSelector";
 import { HexagramDisplay } from "./YaoInkAnimation";
 import { useSound } from "@/hooks/useSound";
 import {
-  tossCoins,
+  tossCoinsDetailed,
   YaoType,
   getYaoName,
   getOriginalHexagram,
   getChangedHexagram,
   getChangingLinePositions,
 } from "@/lib/utils/divination";
+import type { CoinFace } from "@/lib/utils/divination";
 import { useDivinationStore } from "@/stores/divinationStore";
 import { Hexagram } from "@/types";
 
 type RitualPhase = "preparation" | "divining" | "result";
+type RitualMode = "standard" | "offline";
 
 interface DivinationRitualProps {
   onComplete?: (
@@ -36,11 +39,20 @@ interface DivinationRitualProps {
 
 export function DivinationRitual({ onComplete, onShowInterpretation }: DivinationRitualProps) {
   const [phase, setPhase] = useState<RitualPhase>("preparation");
+  const [mode, setMode] = useState<RitualMode>("standard");
   const [currentStep, setCurrentStep] = useState(0);
   const [lines, setLines] = useState<YaoType[]>([]);
   const [isTossing, setIsTossing] = useState(false);
   const [lastResult, setLastResult] = useState<YaoType | null>(null);
   const [showResult, setShowResult] = useState(false);
+  const [coinFaces, setCoinFaces] = useState<[CoinFace, CoinFace, CoinFace] | undefined>(undefined);
+
+  // 线下模式零时状态
+  const [pendingOfflineResult, setPendingOfflineResult] = useState<{
+    coins: [CoinFace, CoinFace, CoinFace];
+    yaoType: YaoType;
+  } | null>(null);
+  const [isOfflineResetting, setIsOfflineResetting] = useState(false);
 
   // 音效
   const playStart = useSound("/sounds/bell.mp3", { volume: 0.5 });
@@ -48,34 +60,75 @@ export function DivinationRitual({ onComplete, onShowInterpretation }: Divinatio
   const playDrop = useSound("/sounds/drop.mp3", { volume: 0.4 });
   const playComplete = useSound("/sounds/gong.mp3", { volume: 0.6 });
 
-  const startDivination = useCallback(() => {
+  const startDivination = useCallback((selectedMode: RitualMode = "standard") => {
     playStart();
     setPhase("divining");
+    setMode(selectedMode);
     setCurrentStep(0);
     setLines([]);
     setIsTossing(false);
     setLastResult(null);
     setShowResult(false);
+    setPendingOfflineResult(null);
+    setIsOfflineResetting(false);
   }, [playStart]);
 
   const handleToss = useCallback(() => {
     if (isTossing || currentStep >= 6) return;
 
+    if (mode === "offline") {
+      if (!pendingOfflineResult || isOfflineResetting) return;
+      const { coins, yaoType } = pendingOfflineResult;
+
+      setIsOfflineResetting(true);
+      playDrop();
+      setCoinFaces(coins);
+      setLastResult(yaoType);
+      setShowResult(true);
+
+      const newLines = [...lines, yaoType];
+      setLines(newLines);
+
+      // 给 1s 的反馈动画时间
+      setTimeout(() => {
+        setCurrentStep((prev) => prev + 1);
+        setIsOfflineResetting(false);
+        setShowResult(false);
+
+        // 检查是否完成
+        if (newLines.length === 6) {
+          setTimeout(() => {
+            playComplete();
+            const original = getOriginalHexagram(newLines);
+            const changed = getChangedHexagram(newLines);
+            const changingLines = getChangingLinePositions(newLines);
+
+            if (original) {
+              setPhase("result");
+              onComplete?.(newLines, original, changed ?? null, changingLines);
+            }
+          }, 1000);
+        }
+      }, 1000);
+      return;
+    }
+
     playToss();
     setIsTossing(true);
     setShowResult(false);
 
-    // 生成结果
-    const result = tossCoins();
-    setLastResult(result);
+    // 生成结果（含每枚铜钱的正反面）
+    const { coins, yaoType } = tossCoinsDetailed();
+    setCoinFaces(coins);
+    setLastResult(yaoType);
 
-    // 动画完成后处理结果
+    // 动画完成后处理结果 (3200ms 动画 + 200ms 缓冲)
     setTimeout(() => {
       playDrop();
       setIsTossing(false);
       setShowResult(true);
 
-      const newLines = [...lines, result];
+      const newLines = [...lines, yaoType];
       setLines(newLines);
       setCurrentStep((prev) => prev + 1);
 
@@ -93,8 +146,12 @@ export function DivinationRitual({ onComplete, onShowInterpretation }: Divinatio
           }
         }, 2000);
       }
-    }, 2000);
-  }, [isTossing, currentStep, lines, onComplete, playToss, playDrop, playComplete]);
+    }, 3400);
+  }, [isTossing, currentStep, lines, mode, pendingOfflineResult, onComplete, playToss, playDrop, playComplete]);
+
+  const handleOfflineResultChange = useCallback((coins: [CoinFace, CoinFace, CoinFace], yaoType: YaoType) => {
+    setPendingOfflineResult({ coins, yaoType });
+  }, []);
 
   const getStepPrompt = (step: number) => {
     const prompts = [
@@ -166,12 +223,20 @@ export function DivinationRitual({ onComplete, onShowInterpretation }: Divinatio
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ delay: 0.7 }}
+              className="flex flex-col sm:flex-row gap-4 justify-center"
             >
               <Button
-                onClick={startDivination}
+                onClick={() => startDivination("standard")}
                 className="px-8 py-6 text-lg bg-stone-800 hover:bg-stone-700 text-stone-50 rounded-full shadow-lg transition-all duration-500 hover:shadow-xl"
               >
-                开始摇卦
+                在线摇卦
+              </Button>
+              <Button
+                onClick={() => startDivination("offline")}
+                variant="outline"
+                className="px-8 py-6 text-lg border-stone-300 hover:bg-stone-50 text-stone-700 rounded-full shadow-md transition-all duration-500"
+              >
+                线下录入
               </Button>
             </motion.div>
           </motion.div>
@@ -186,9 +251,15 @@ export function DivinationRitual({ onComplete, onShowInterpretation }: Divinatio
             exit={{ opacity: 0 }}
             className="space-y-8"
           >
-            {/* 铜钱动画区域 */}
-            <div className="flex justify-center py-8">
-              <CoinAnimation isTossing={isTossing} />
+            <div className="flex justify-center py-8 min-h-[220px]">
+              {mode === "standard" ? (
+                <CoinAnimation isTossing={isTossing} coins={coinFaces} />
+              ) : (
+                <OfflineCoinSelector
+                  onResultChange={handleOfflineResultChange}
+                  isResetting={isOfflineResetting}
+                />
+              )}
             </div>
 
             {/* 提示文字 */}
@@ -205,21 +276,23 @@ export function DivinationRitual({ onComplete, onShowInterpretation }: Divinatio
               </p>
             </motion.div>
 
-            {/* 摇卦按钮 */}
             <div className="flex justify-center">
               <Button
                 onClick={handleToss}
-                disabled={isTossing || currentStep >= 6}
+                disabled={(mode === "standard" && isTossing) || (mode === "offline" && isOfflineResetting) || currentStep >= 6}
                 className={`
                   px-8 py-6 text-lg rounded-full shadow-lg transition-all duration-500
-                  ${isTossing
+                  ${((mode === "standard" && isTossing) || (mode === "offline" && isOfflineResetting))
                     ? "bg-stone-400 cursor-not-allowed"
                     : "bg-stone-800 hover:bg-stone-700 hover:shadow-xl"
                   }
                   text-stone-50
                 `}
               >
-                {isTossing ? "铜钱飞旋..." : currentStep >= 6 ? "卦成" : "点击抛掷"}
+                {mode === "standard"
+                  ? (isTossing ? "铜钱飞旋..." : currentStep >= 6 ? "卦成" : "点击抛掷")
+                  : (isOfflineResetting ? "记录中..." : currentStep >= 6 ? "卦成" : "确认此爻结果")
+                }
               </Button>
             </div>
 

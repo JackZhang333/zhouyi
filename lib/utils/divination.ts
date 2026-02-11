@@ -4,6 +4,15 @@ import { getHexagramByLines, hexagrams } from "@/data/hexagrams";
 // Re-export YaoType for convenience
 export type { YaoType };
 
+// 铜钱正反面类型：head=字面(3), tail=背面(2)
+export type CoinFace = "head" | "tail";
+
+// 详细投掷结果
+export interface CoinTossResult {
+  coins: [CoinFace, CoinFace, CoinFace]; // 三枚铜钱各自正反
+  yaoType: YaoType;                       // 6/7/8/9
+}
+
 /**
  * 投掷三枚铜钱，得到一个爻的值
  * 铜钱正面（字）为 3，反面（背）为 2
@@ -14,27 +23,37 @@ export type { YaoType };
  * 9: 老阳 (少阳变爻) ——— 变阴
  */
 export function tossCoins(): YaoType {
-  // 模拟三枚铜钱投掷
-  // 每枚铜钱：正面(字)=3，反面(背)=2
-  const coin1 = Math.random() < 0.5 ? 2 : 3;
-  const coin2 = Math.random() < 0.5 ? 2 : 3;
-  const coin3 = Math.random() < 0.5 ? 2 : 3;
+  return tossCoinsDetailed().yaoType;
+}
 
-  const sum = coin1 + coin2 + coin3;
+/**
+ * 投掷三枚铜钱，返回每枚铜钱的正反面和爻值
+ */
+export function tossCoinsDetailed(): CoinTossResult {
+  const coinValues = [
+    Math.random() < 0.5 ? 2 : 3,
+    Math.random() < 0.5 ? 2 : 3,
+    Math.random() < 0.5 ? 2 : 3,
+  ] as const;
 
-  // 映射到爻类型
+  const coins: [CoinFace, CoinFace, CoinFace] = [
+    coinValues[0] === 3 ? "head" : "tail",
+    coinValues[1] === 3 ? "head" : "tail",
+    coinValues[2] === 3 ? "head" : "tail",
+  ];
+
+  const sum = coinValues[0] + coinValues[1] + coinValues[2];
+
+  let yaoType: YaoType;
   switch (sum) {
-    case 6:
-      return 6; // 老阴 (三反面)
-    case 7:
-      return 7; // 少阳 (两反一正)
-    case 8:
-      return 8; // 少阴 (两正一反)
-    case 9:
-      return 9; // 老阳 (三正面)
-    default:
-      return 7;
+    case 6: yaoType = 6; break; // 老阴 (三反面)
+    case 7: yaoType = 7; break; // 少阳 (两反一正)
+    case 8: yaoType = 8; break; // 少阴 (两正一反)
+    case 9: yaoType = 9; break; // 老阳 (三正面)
+    default: yaoType = 7; break;
   }
+
+  return { coins, yaoType };
 }
 
 /**
@@ -227,8 +246,8 @@ export function getRandomCoinResult(): "head" | "tail" {
  * 获取铜钱投掷的动画延迟时间
  */
 export function getTossAnimationDuration(): number {
-  // 0.8秒上升 + 0.5秒翻转 + 0.6秒落地 = 1.9秒
-  return 1900;
+  // Shake(600) + Throw(500) + Spin(800) + Land(700) + Reveal(600) = 3200ms
+  return 3200;
 }
 
 /**

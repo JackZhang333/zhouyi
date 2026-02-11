@@ -11,8 +11,8 @@ import { HexagramDisplay } from "@/components/divination/YaoInkAnimation";
 import { getHexagramById } from "@/data/hexagrams";
 import { YaoType } from "@/lib/utils/divination";
 import { Hexagram } from "@/types";
-import { ArrowLeft, Download, Share2, Loader2 } from "lucide-react";
-import html2canvas from "html2canvas";
+import { ArrowLeft, Download, Share2, Loader2, Lock } from "lucide-react";
+import html2canvas from "html2canvas-pro";
 
 function SharePageContent() {
   const params = useParams();
@@ -25,8 +25,20 @@ function SharePageContent() {
   const [interpretation, setInterpretation] = useState("");
   const [isGenerating, setIsGenerating] = useState(false);
   const [isCopied, setIsCopied] = useState(false);
+  const [user, setUser] = useState<any>(null);
+  const [isLoadingUser, setIsLoadingUser] = useState(true);
 
   useEffect(() => {
+    const supabase = createClient();
+
+    // Get user session
+    const checkUser = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      setUser(user);
+      setIsLoadingUser(false);
+    };
+    checkUser();
+
     const fetchRecord = async () => {
       const id = params.id as string;
 
@@ -177,11 +189,28 @@ function SharePageContent() {
               )}
 
               {interpretation && (
-                <div className="bg-white p-4 rounded-lg">
+                <div className="bg-white p-4 rounded-lg relative overflow-hidden">
                   <p className="text-sm text-stone-500 mb-1">AI 解读</p>
-                  <p className="text-stone-700 text-sm line-clamp-4">
-                    {interpretation}
-                  </p>
+                  {!isLoadingUser && !user ? (
+                    <div className="py-6 flex flex-col items-center justify-center text-center space-y-3">
+                      <div className="bg-stone-100 p-2 rounded-full">
+                        <Lock className="h-4 w-4 text-stone-400" />
+                      </div>
+                      <div className="space-y-1">
+                        <p className="text-stone-600 text-sm font-medium">卦解内容仅登录用户可见</p>
+                        <p className="text-stone-400 text-xs">登录后探索更深层的易经智慧</p>
+                      </div>
+                      <Link href={`/auth/login?redirect=/share/${params.id}`}>
+                        <Button size="sm" variant="outline" className="mt-2 text-xs">
+                          立即登录
+                        </Button>
+                      </Link>
+                    </div>
+                  ) : (
+                    <p className={`text-stone-700 text-sm ${isLoadingUser ? "blur-sm" : "line-clamp-4"}`}>
+                      {interpretation}
+                    </p>
+                  )}
                 </div>
               )}
             </div>

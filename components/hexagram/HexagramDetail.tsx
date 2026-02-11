@@ -11,6 +11,11 @@ import { getHexagramRelations } from "@/lib/utils/hexagram";
 import { HexagramDisplay } from "@/components/divination/YaoInkAnimation";
 import { Comments } from "./Comments";
 import { ScrollReveal } from "@/components/divination/ScrollReveal";
+import { Share2, Lock } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { useEffect, useState } from "react";
+import { createClient } from "@/lib/supabase/client";
+import { useRouter } from "next/navigation";
 
 interface HexagramDetailProps {
   hexagram: Hexagram;
@@ -18,6 +23,28 @@ interface HexagramDetailProps {
 
 export function HexagramDetail({ hexagram }: HexagramDetailProps) {
   const relations = getHexagramRelations(hexagram);
+  const [user, setUser] = useState<any>(null);
+  const [isLoadingUser, setIsLoadingUser] = useState(true);
+  const router = useRouter();
+
+  useEffect(() => {
+    const supabase = createClient();
+    const checkUser = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      setUser(user);
+      setIsLoadingUser(false);
+    };
+    checkUser();
+  }, []);
+
+  const handleShare = () => {
+    if (isLoadingUser) return;
+    if (!user) {
+      router.push(`/auth/login?redirect=/hexagrams/${hexagram.id}`);
+      return;
+    }
+    router.push(`/share/${hexagram.id}`);
+  };
 
   const relationCards = [
     { title: "错卦", hexagram: relations.cuoGua, desc: "阴阳全变" },
@@ -34,11 +61,23 @@ export function HexagramDetail({ hexagram }: HexagramDetailProps) {
         animate={{ opacity: 1, y: 0 }}
         className="text-center space-y-4"
       >
-        <div className="flex items-center justify-center gap-4">
+        <div className="flex items-center justify-center gap-4 relative">
           <span className="text-5xl font-calligraphy text-stone-800">
             {hexagram.name}
           </span>
           <span className="text-xl text-stone-500 font-serif">{hexagram.pinyin}</span>
+
+          <Button
+            variant="ghost"
+            size="sm"
+            className="absolute right-0 text-stone-400 hover:text-stone-600 gap-1"
+            onClick={handleShare}
+            disabled={isLoadingUser}
+          >
+            {!isLoadingUser && !user && <Lock className="h-3 w-3" />}
+            <Share2 className="h-4 w-4" />
+            <span className="hidden sm:inline">分享</span>
+          </Button>
         </div>
         <p className="text-stone-400">第 {hexagram.sequence} 卦 · {hexagram.symbol}</p>
       </motion.div>

@@ -77,23 +77,37 @@ export const useDivinationStore = create<DivinationStore>()(
       addToHistory: async (record: DivinationRecord) => {
         const { history } = get();
 
+        // 检查是否已存在该 ID 的记录
+        const existingIndex = history.findIndex((r) => r.id === record.id);
+        let newHistory;
+
+        if (existingIndex >= 0) {
+          // 更新现有记录
+          newHistory = [...history];
+          newHistory[existingIndex] = record;
+        } else {
+          // 添加新记录
+          newHistory = [record, ...history].slice(0, 100);
+        }
+
         // 保存到本地
         set({
-          history: [record, ...history].slice(0, 100),
+          history: newHistory,
         });
 
         // 尝试同步到 Supabase
         try {
           const savedData = await saveDivinationRecord(record);
           if (savedData && savedData.id) {
-            // Update the local record with the DB ID if needed, 
-            // but for now we just return it
             return savedData.id;
           }
+          // 如果返回 null (比如没登录)，仍然返回本地 ID
+          return record.id;
         } catch (error) {
-          console.warn("Failed to sync to Supabase:", error);
+          console.error("Failed to sync to Supabase:", error);
+          // 重新抛出错误，让调用者知道远程保存失败了
+          throw error;
         }
-        return record.id;
       },
 
       removeFromHistory: async (id: string) => {

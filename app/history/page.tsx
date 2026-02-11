@@ -10,6 +10,10 @@ import { Input } from "@/components/ui/input";
 import { useDivinationStore } from "@/stores/divinationStore";
 import { getHexagramById } from "@/data/hexagrams";
 import { DivinationRecord } from "@/types";
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { createClient } from "@/lib/supabase/client";
+import { Loader2 } from "lucide-react";
 import {
   Trash2,
   ExternalLink,
@@ -31,6 +35,23 @@ export default function HistoryPage() {
   const [importData, setImportData] = useState("");
   const [importError, setImportError] = useState("");
   const [isSyncing, setIsSyncing] = useState(false);
+  const [user, setUser] = useState<any>(null);
+  const [isLoadingUser, setIsLoadingUser] = useState(true);
+  const router = useRouter();
+
+  useEffect(() => {
+    const supabase = createClient();
+    const checkUser = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        router.push("/auth/login?redirect=/history");
+        return;
+      }
+      setUser(user);
+      setIsLoadingUser(false);
+    };
+    checkUser();
+  }, [router]);
 
   // 获取所有唯一标签
   const allTags = useMemo(() => {
@@ -111,6 +132,17 @@ export default function HistoryPage() {
       setImportError(error instanceof Error ? error.message : "导入失败");
     }
   };
+
+  if (isLoadingUser) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4 text-stone-400" />
+          <p className="text-stone-600">加载中...</p>
+        </div>
+      </div>
+    );
+  }
 
   if (history.length === 0) {
     return (
@@ -504,18 +536,7 @@ function RecordCard({ record, index, onDelete }: RecordCardProps) {
             {/* 操作按钮 */}
             <div className="flex flex-col gap-2">
               <Link
-                href={`/divination/result?lines=${encodeURIComponent(
-                  JSON.stringify(record.lines)
-                )}&original=${record.original_hexagram_id}${record.changed_hexagram_id
-                    ? `&changed=${record.changed_hexagram_id}`
-                    : ""
-                  }&changing=${encodeURIComponent(
-                    JSON.stringify(record.changing_lines)
-                  )}&question=${encodeURIComponent(
-                    record.question || ""
-                  )}&interpretation=${encodeURIComponent(
-                    record.ai_interpretation || ""
-                  )}&id=${record.id}`}
+                href={`/divination/result?id=${record.id}`}
               >
                 <Button variant="ghost" size="icon" className="text-stone-400 hover:text-stone-600">
                   <Eye className="h-4 w-4" />

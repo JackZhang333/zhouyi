@@ -1,6 +1,6 @@
 /** @type {import('next-sitemap').IConfig} */
 module.exports = {
-    siteUrl: process.env.SITE_URL || 'https://wengua.ai',
+    siteUrl: process.env.SITE_URL || 'https://timeandzone.cn',
     generateRobotsTxt: true,
     exclude: ['/history', '/auth/*'],
     transform: async (config, path) => {

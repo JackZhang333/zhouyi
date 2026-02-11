@@ -15,6 +15,8 @@ export default function SignupPage() {
     const [error, setError] = useState<string | null>(null);
     const [message, setMessage] = useState<string | null>(null);
     const router = useRouter();
+    const searchParams = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : null;
+    const redirect = searchParams?.get("redirect") || "/";
     const supabase = createClient();
 
     const handleSignup = async (e: React.FormEvent) => {
@@ -41,13 +43,13 @@ export default function SignupPage() {
     };
 
     return (
-        <div className="container flex items-center justify-center min-h-[calc(100vh-200px)] py-12">
-            <Card className="w-full max-w-md border-stone-200 shadow-sm bg-white/50 backdrop-blur-sm">
-                <CardHeader className="text-center">
+        <div className="flex items-center justify-center min-h-[calc(100vh-160px)] p-4 md:p-8">
+            <Card className="w-full max-w-[400px] border-stone-200 shadow-xl bg-white/70 backdrop-blur-md overflow-hidden">
+                <CardHeader className="text-center pt-8 px-4 sm:px-6">
                     <CardTitle className="text-2xl font-serif">注 册</CardTitle>
                     <CardDescription>开启您的周易智慧之旅</CardDescription>
                 </CardHeader>
-                <CardContent>
+                <CardContent className="px-4 sm:px-6">
                     <form onSubmit={handleSignup} className="space-y-4">
                         <div className="space-y-2">
                             <label className="text-sm font-medium text-stone-600">邮箱</label>
@@ -82,10 +84,10 @@ export default function SignupPage() {
                         </Button>
                     </form>
                 </CardContent>
-                <CardFooter className="flex flex-col space-y-2 text-center text-sm text-stone-500">
+                <CardFooter className="flex flex-col space-y-2 text-center text-sm text-stone-500 pb-8 px-4 sm:px-6">
                     <p>
                         已有账号？{" "}
-                        <Link href="/auth/login" className="text-stone-800 hover:underline">
+                        <Link href={`/auth/login?redirect=${encodeURIComponent(redirect)}`} className="text-stone-800 hover:underline">
                             立即登录
                         </Link>
                     </p>
