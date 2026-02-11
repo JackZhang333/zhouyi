@@ -15,7 +15,7 @@ import { getHexagramById } from "@/data/hexagrams";
 import { YaoType } from "@/lib/utils/divination";
 import { Hexagram } from "@/types";
 import { useDivinationStore } from "@/stores/divinationStore";
-import { ArrowLeft, Share2, Save, Sparkles, Loader2, RotateCcw, Lock } from "lucide-react";
+import { ArrowLeft, Share2, Save, Loader2, RotateCcw, Lock } from "lucide-react";
 import { ZenMarkdown } from "@/components/divination/ZenMarkdown";
 import { createClient } from "@/lib/supabase/client";
 import { getDivinationRecordById } from "@/lib/supabase/db";
@@ -375,7 +375,7 @@ function DivinationResultContent() {
             <Card className="border-stone-200">
               <CardHeader>
                 <CardTitle className="text-lg font-serif flex items-center gap-2">
-                  <Sparkles className="h-5 w-5 text-amber-500" />
+                  <img src="/logo.png" alt="logo" className="h-5 w-5 object-contain" />
                   AI 解读
                 </CardTitle>
               </CardHeader>

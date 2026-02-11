@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
-import { Sparkles, BookOpen, Share2 } from "lucide-react";
+import { BookOpen, Share2 } from "lucide-react";
 import { ScrollReveal } from "@/components/divination";
 
 export default function HomePage() {
@@ -45,7 +45,7 @@ export default function HomePage() {
                   size="lg"
                   className="px-10 py-7 text-xl bg-stone-800 hover:bg-stone-700 text-stone-50 rounded-full shadow-2xl hover:shadow-stone-400/50 transition-all duration-500 transform hover:-translate-y-1"
                 >
-                  <Sparkles className="mr-2 h-6 w-6" />
+                  <img src="/logo_revert.png" alt="logo" className="mr-2 h-6 w-6 object-contain" />
                   开启摇卦
                 </Button>
               </Link>
@@ -70,7 +70,7 @@ export default function HomePage() {
           <div className="grid md:grid-cols-3 gap-12">
             {[
               {
-                icon: Sparkles,
+                icon: () => <img src="/logo_revert.png" alt="logo" className="h-8 w-8 object-contain" />,
                 title: "仪式摇卦",
                 description: "模拟三枚铜钱摇卦，结合3D动效与粒子拖尾，还原最真实的起卦仪式。",
               },
@@ -120,7 +120,7 @@ export default function HomePage() {
       {/* CTA Section */}
       <section className="py-24 bg-stone-900 text-stone-50 relative overflow-hidden">
         <div className="absolute top-0 right-0 w-1/2 h-full opacity-10 pointer-events-none">
-          <Sparkles className="w-full h-full rotate-12" />
+          <img src="/logo_revert.png" alt="logo" className="w-full h-full rotate-12 object-contain" />
         </div>
         <div className="container mx-auto px-4 text-center relative z-10">
           <h2 className="text-3xl md:text-5xl font-serif mb-6 tracking-tight">
@@ -134,7 +134,7 @@ export default function HomePage() {
             <Button
               size="lg"
               variant="outline"
-              className="px-12 py-8 text-xl border-stone-700 text-stone-100 hover:bg-stone-800 hover:border-stone-500 rounded-full transition-all duration-700 shadow-2xl"
+              className="px-12 py-8 text-xl border-stone-700 text-stone-900 hover:bg-stone-800 hover:border-stone-500 rounded-full transition-all duration-700 shadow-2xl"
             >
               立刻起卦
             </Button>

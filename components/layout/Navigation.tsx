@@ -5,14 +5,14 @@ import { usePathname, useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import { Menu, BookOpen, Sparkles, History, User, LogOut } from "lucide-react";
+import { Menu, BookOpen, History, User, LogOut } from "lucide-react";
 import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { User as SupabaseUser } from "@supabase/supabase-js";
 
 const navItems = [
   { href: "/", label: "首页", icon: null },
-  { href: "/divination", label: "摇卦", icon: Sparkles },
+  { href: "/divination", label: "摇卦", icon: () => <img src="/logo.png" alt="logo" className="h-4 w-4 object-contain" /> },
   { href: "/hexagrams", label: "六十四卦", icon: BookOpen },
   { href: "/history", label: "历史", icon: History },
 ];
@@ -53,7 +53,8 @@ export function Navigation() {
       <div className="container mx-auto px-4 h-16 flex items-center justify-between">
         {/* Logo */}
         <Link href="/" className="flex items-center gap-2">
-          <span className="text-2xl font-serif text-stone-800">周易</span>
+          <img src="/logo.png" alt="logo" className="h-8 w-8 object-contain" />
+          <span className="text-2xl font-serif text-stone-800">问卦</span>
         </Link>
 
         {/* Desktop Navigation */}
@@ -157,6 +158,6 @@ export function Navigation() {
           </SheetContent>
         </Sheet>
       </div>
-    </header>
+    </header >
   );
 }

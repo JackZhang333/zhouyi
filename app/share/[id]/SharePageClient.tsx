@@ -215,9 +215,14 @@ function SharePageContent() {
               )}
             </div>
 
-            <div className="text-center text-stone-400 text-sm">
-              <p>{new Date().toLocaleDateString("zh-CN")}</p>
-              <p className="mt-1">扫码访问周易学习</p>
+            <div className="flex flex-col items-center justify-center mt-8 space-y-2">
+              <div className="bg-white p-2 rounded-lg shadow-sm border border-stone-100">
+                <img src="/QRCode.png" alt="QR Code" className="w-24 h-24 object-contain" />
+              </div>
+              <div className="text-center text-stone-400 text-xs">
+                <p>{new Date().toLocaleDateString("zh-CN")}</p>
+                <p className="mt-1">扫码开启周易智慧</p>
+              </div>
             </div>
           </div>
 
