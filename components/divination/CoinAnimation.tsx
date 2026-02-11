@@ -73,7 +73,7 @@ export function CoinAnimation({
       case "idle":
         return {
           animate: { y: [0, -4, 0], x: 0, rotateX: 0, rotateY: 0, rotateZ: 0, scale: 1 },
-          transition: { duration: 2, ease: "easeInOut", repeat: Infinity, delay: index * 0.2 },
+          transition: { duration: 2, ease: "easeInOut" as const, repeat: Infinity, delay: index * 0.2 },
         };
       case "shake":
         return {
@@ -83,7 +83,7 @@ export function CoinAnimation({
             rotateZ: [0, -4, 6, -8, 5, -3, 6, -4, 0],
             rotateX: [0, 10, -10, 15, -8, 5, -12, 8, 0],
           },
-          transition: { duration: PHASE_DURATIONS.shake / 1000, ease: "easeInOut" },
+          transition: { duration: PHASE_DURATIONS.shake / 1000, ease: "easeInOut" as const },
         };
       case "throw":
         return {
@@ -93,7 +93,7 @@ export function CoinAnimation({
       case "spin":
         return {
           animate: { y: -110 - index * 10, rotateX: 360 * 4 + index * 120, rotateZ: (index - 1) * 20, scale: 0.85 },
-          transition: { duration: PHASE_DURATIONS.spin / 1000, ease: "linear", delay: stagger },
+          transition: { duration: PHASE_DURATIONS.spin / 1000, ease: "linear" as const, delay: stagger },
         };
       case "land":
         return {
@@ -122,8 +122,8 @@ export function CoinAnimation({
           },
           transition: {
             duration: PHASE_DURATIONS.reveal / 1000,
-            ease: "easeOut",
-            scale: { duration: 0.4, ease: "easeOut" },
+            ease: "easeOut" as const,
+            scale: { duration: 0.4, ease: "easeOut" as const },
           },
         };
       default:
@@ -149,7 +149,7 @@ export function CoinAnimation({
                 }}
                 initial={{ opacity: 0, scale: 0 }}
                 animate={{ opacity: [0, 1, 0], scale: [0, 1.2, 0], x: (Math.random() - 0.5) * 160, y: -(Math.random() * 60 + 10) }}
-                transition={{ duration: 0.8, ease: "easeOut", delay: i * 0.03 }}
+                transition={{ duration: 0.8, ease: "easeOut" as const, delay: i * 0.03 }}
               />
             ))}
           </div>
@@ -234,7 +234,7 @@ export function CoinAnimation({
           scale: phase === "reveal" ? [1, 1.3, 1.1] : phase === "spin" ? [1, 1.15, 1] : [1, 1.05, 1],
           opacity: phase === "reveal" ? [0.3, 0.6, 0.4] : phase === "spin" ? [0.2, 0.4, 0.2] : [0.15, 0.25, 0.15],
         }}
-        transition={{ duration: phase === "idle" ? 2 : 0.8, ease: "easeInOut", repeat: phase === "idle" ? Infinity : 0 }}
+        transition={{ duration: phase === "idle" ? 2 : 0.8, ease: "easeInOut" as const, repeat: phase === "idle" ? Infinity : 0 }}
       />
     </div>
   );
