@@ -1,7 +1,11 @@
 import { createClient } from "@/lib/supabase/server";
 import { NextResponse } from "next/server";
 
+export const dynamic = "force-static";
+
 export async function GET(request: Request) {
+    // 在静态导出模式下，此路由仅作为占位符
+    // 实际的认证回调由客户端处理
     const { searchParams, origin } = new URL(request.url);
     const code = searchParams.get("code");
     // if "next" is in search params, use it as the redirection URL

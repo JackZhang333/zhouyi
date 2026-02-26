@@ -19,7 +19,9 @@ export async function generateStaticParams() {
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { id } = await params;
-  const hexagram = getHexagramById(id);
+  // 解码 URL 编码的 ID（如 l%C3%BC -> lü）
+  const decodedId = decodeURIComponent(id);
+  const hexagram = getHexagramById(decodedId);
 
   if (!hexagram) {
     return {
@@ -32,7 +34,9 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default async function HexagramPage({ params }: Props) {
   const { id } = await params;
-  const hexagram = getHexagramById(id);
+  // 解码 URL 编码的 ID（如 l%C3%BC -> lü）
+  const decodedId = decodeURIComponent(id);
+  const hexagram = getHexagramById(decodedId);
 
   if (!hexagram) {
     notFound();

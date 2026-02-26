@@ -40,7 +40,8 @@ function SharePageContent() {
     checkUser();
 
     const fetchRecord = async () => {
-      const id = params.id as string;
+      // 解码 URL 编码的 ID（如 l%C3%BC -> lü）
+      const id = decodeURIComponent(params.id as string);
 
       // Try fetching as a record UUID first
       if (id.length > 20) { // Simple check for UUID-like string
