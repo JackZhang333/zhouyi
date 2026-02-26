@@ -524,8 +524,8 @@ function DivinationResultContent() {
             <Link href={
               user
                 ? (savedRecordId
-                  ? `/share/${savedRecordId}`
-                  : `/share/${originalHexagram.id}?lines=${encodeURIComponent(JSON.stringify(lines))}&question=${encodeURIComponent(question)}`)
+                  ? `/share?id=${savedRecordId}`
+                  : `/share?id=${originalHexagram.id}&lines=${encodeURIComponent(JSON.stringify(lines))}&question=${encodeURIComponent(question)}`)
                 : `/auth/login?redirect=/divination/result?id=${savedRecordId || ""}&lines=${encodeURIComponent(JSON.stringify(lines))}&original=${originalHexagram.id}&changed=${changedHexagram?.id || ""}&changing=${JSON.stringify(changingLines)}&question=${encodeURIComponent(question)}`
             }>
               <Button variant="outline" className="gap-2">

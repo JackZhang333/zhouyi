@@ -44,7 +44,7 @@ export function HexagramDetail({ hexagram }: HexagramDetailProps) {
       router.push(`/auth/login?redirect=/hexagrams/${hexagram.id}`);
       return;
     }
-    router.push(`/share/${hexagram.id}`);
+    router.push(`/share?id=${hexagram.id}`);
   };
 
   const relationCards = [

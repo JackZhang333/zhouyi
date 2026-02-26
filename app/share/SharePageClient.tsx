@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, useRef, Suspense } from "react";
-import { useSearchParams, useParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import { motion } from "framer-motion";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
@@ -15,7 +15,6 @@ import { ArrowLeft, Download, Share2, Loader2, Lock } from "lucide-react";
 import html2canvas from "html2canvas-pro";
 
 function SharePageContent() {
-  const params = useParams();
   const searchParams = useSearchParams();
   const cardRef = useRef<HTMLDivElement>(null);
 
@@ -40,16 +39,19 @@ function SharePageContent() {
     checkUser();
 
     const fetchRecord = async () => {
-      // 解码 URL 编码的 ID（如 l%C3%BC -> lü）
-      const id = decodeURIComponent(params.id as string);
+      // 从查询参数获取 ID
+      const id = searchParams.get("id");
+      if (!id) return;
+
+      const decodedId = decodeURIComponent(id);
 
       // Try fetching as a record UUID first
-      if (id.length > 20) { // Simple check for UUID-like string
+      if (decodedId.length > 20) { // Simple check for UUID-like string
         const supabase = createClient();
         const { data, error } = await supabase
           .from("divination_records")
           .select("*")
-          .eq("id", id)
+          .eq("id", decodedId)
           .single();
 
         if (data && !error) {
@@ -63,7 +65,7 @@ function SharePageContent() {
       }
 
       // Fallback to hexagram ID and query params
-      const hexagram = getHexagramById(id);
+      const hexagram = getHexagramById(decodedId);
       if (hexagram) {
         setOriginalHexagram(hexagram);
 
@@ -92,7 +94,7 @@ function SharePageContent() {
     };
 
     fetchRecord();
-  }, [params.id, searchParams]);
+  }, [searchParams]);
 
   // 生成分享图片
   const generateImage = async () => {
@@ -201,7 +203,7 @@ function SharePageContent() {
                         <p className="text-stone-600 text-sm font-medium">卦解内容仅登录用户可见</p>
                         <p className="text-stone-400 text-xs">登录后探索更深层的易经智慧</p>
                       </div>
-                      <Link href={`/auth/login?redirect=/share/${params.id}`}>
+                      <Link href={`/auth/login?redirect=/share${window.location.search}`}>
                         <Button size="sm" variant="outline" className="mt-2 text-xs">
                           立即登录
                         </Button>
