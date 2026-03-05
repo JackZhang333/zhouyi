@@ -5,7 +5,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import { Menu, BookOpen, History, User, LogOut } from "lucide-react";
+import { Menu, BookOpen, History, User, LogOut, Settings } from "lucide-react";
 import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { User as SupabaseUser } from "@supabase/supabase-js";
@@ -84,14 +84,22 @@ export function Navigation() {
 
           {user ? (
             <div className="flex items-center gap-2">
-              <span className="text-sm text-stone-500 truncate max-w-[120px]">
-                {user.email}
-              </span>
+              <Link href="/profile">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  title="个人资料"
+                  className="text-stone-600 hover:text-stone-900"
+                >
+                  <Settings className="h-4 w-4" />
+                </Button>
+              </Link>
               <Button
                 variant="ghost"
                 size="icon"
                 onClick={handleLogout}
                 title="退出登录"
+                className="text-stone-600 hover:text-stone-900"
               >
                 <LogOut className="h-4 w-4" />
               </Button>
@@ -131,6 +139,15 @@ export function Navigation() {
               <div className="my-2 border-t border-stone-200" />
               {user ? (
                 <>
+                  <Link href="/profile" onClick={() => setIsOpen(false)}>
+                    <Button
+                      variant="ghost"
+                      className={`w-full justify-start gap-2 ${pathname === "/profile" ? "bg-stone-200 text-stone-900" : "text-stone-600"}`}
+                    >
+                      <Settings className="h-4 w-4" />
+                      个人资料
+                    </Button>
+                  </Link>
                   <div className="px-4 py-2 text-sm text-stone-500 truncate">
                     {user.email}
                   </div>

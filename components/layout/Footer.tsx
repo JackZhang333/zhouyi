@@ -32,6 +32,14 @@ export function Footer() {
             >
               在线摇卦
             </Link>
+            <Link href="/privacy" className="text-stone-500 hover:text-stone-700 text-sm transition-colors"
+            >
+              隐私政策
+            </Link>
+            <Link href="/terms" className="text-stone-500 hover:text-stone-700 text-sm transition-colors"
+            >
+              服务协议
+            </Link>
           </div>
         </div>
 
